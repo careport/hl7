@@ -38,66 +38,66 @@ module HL7
 
     def validate!
       # year is not allowed to be nil
-      AttrSpec.new(:year, -9999..9999).validate_non_nil!(year)
+      ComponentSpec.new(:year, -9999..9999).validate_non_nil!(year)
 
       # From month down to fraction-of-second, we validate the fields until we come
       # to a nil value. Once we've found a nil, we ensure that all of the rest of
       # the fields are also nil.
       [
-        AttrSpec.new(:month, 1..12),
-        AttrSpec.new(:day, -> { 1..Time.days_in_month(month, year) }),
-        AttrSpec.new(:hour, 0..23),
-        AttrSpec.new(:minute, 0..59),
-        AttrSpec.new(:second, 0..59),
-        AttrSpec.new(:fraction, 0...1, :real?)
-      ].reduce(nil) do |first_nil_attr, spec|
-        value = public_send(spec.attr)
-        spec.validate!(value, first_nil_attr)
+        ComponentSpec.new(:month, 1..12),
+        ComponentSpec.new(:day, -> { 1..Time.days_in_month(month, year) }),
+        ComponentSpec.new(:hour, 0..23),
+        ComponentSpec.new(:minute, 0..59),
+        ComponentSpec.new(:second, 0..59),
+        ComponentSpec.new(:fraction, 0...1, :real?)
+      ].reduce(nil) do |first_nil_component, spec|
+        value = public_send(spec.component_name)
+        spec.validate!(value, first_nil_component)
       end
 
       # offset_seconds is allowed to be nil or not
-      AttrSpec.new(:offset_seconds, -64800..64800).validate!(offset_seconds, nil)
+      ComponentSpec.new(:offset_seconds, -64800..64800).validate!(offset_seconds, nil)
     end
 
-    class AttrSpec
-      attr_reader :attr
+    class ComponentSpec
+      attr_reader :component_name
 
       # The range_or_proc is either a Range or a callable that takes
       # zero arguments and returns a Range. This allows Ranges to
       # be lazily instantiated where necessary.
-      def initialize(attr, range_or_proc, predicate = :integer?)
-        @attr = attr
+      def initialize(component_name, range_or_proc, predicate = :integer?)
+        @component_name = component_name
         @range_or_proc = range_or_proc
         @predicate = predicate
       end
 
-      # This method always returns the first nil attribute that
-      # we've encountered, or nil if we haven't encountered one.
-      def validate!(value, first_nil_attr)
-        if first_nil_attr.nil?
-          # We haven't encountered a nil attribute yet, but this might
+      # This method always returns the name of the first nil component
+      # that we've encountered, or nil if we haven't encountered one.
+      def validate!(value, first_nil_component)
+        if first_nil_component.nil?
+          # We haven't encountered a nil component yet, but this might
           # be the first one.
           if value.nil?
-            attr
+            component_name
           else
             validate_non_nil!(value)
             nil
           end
         else
-          # We've already encountered a nil attribute, so
+          # We've already encountered a nil component, so
           # this one is required to be nil.
-          ensure_nil!(value, first_nil_attr)
-          first_nil_attr
+          ensure_nil!(value, first_nil_component)
+          first_nil_component
         end
       end
 
       def validate_non_nil!(value)
         unless value.respond_to?(predicate) && value.public_send(predicate)
-          raise ArgumentError, "#{attr} must satisfy #{predicate}; given #{value.inspect}"
+          raise ArgumentError, "#{component_name} must satisfy #{predicate}; given #{value.inspect}"
         end
 
         unless range.cover?(value)
-          raise ArgumentError, "#{attr} must be within #{range}; given #{value.inspect}"
+          raise ArgumentError, "#{component_name} must be within #{range}; given #{value.inspect}"
         end
       end
 
@@ -113,13 +113,13 @@ module HL7
         end
       end
 
-      def ensure_nil!(value, first_nil_attr)
+      def ensure_nil!(value, first_nil_component)
         unless value.nil?
-          raise ArgumentError, "#{attr} must be nil, because #{first_nil_attr} is nil; instead received #{value.inspect}"
+          raise ArgumentError, "#{component_name} must be nil, because #{first_nil_component} is nil; instead received #{value.inspect}"
         end
       end
     end
 
-    private_constant :AttrSpec
+    private_constant :ComponentSpec
   end
 end

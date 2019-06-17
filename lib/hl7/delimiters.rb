@@ -25,7 +25,7 @@ module HL7
     # or the segment separator, which is not customizable
     # within the message itself.
     def encoding_characters
-      component + repeat + escape + subcomponent
+      [component, repeat, escape, subcomponent].compact.join
     end
 
     # See HL7 v2 specification, section 2.7.
@@ -61,6 +61,14 @@ module HL7
       end
     end
 
+    def escape_text(text)
+      if escape.nil?
+        text
+      else
+        text.gsub(escape_regexp, escape_replacements)
+      end
+    end
+
     private
 
     def unescape_regexp
@@ -81,6 +89,28 @@ module HL7
           "#{e}R#{e}" => repeat,
           "#{e}E#{e}" => escape
         }
+      )
+    end
+
+    def escape_regexp
+      @escape_regexp ||= [field, component, subcomponent, repeat, escape].
+        compact.
+        map(&Regexp.method(:quote)).
+        join("|").
+        yield_self(&Regexp.method(:new))
+    end
+
+    def escape_replacements
+      @escape_replacements ||= (
+        e = escape
+
+        {
+          field => "#{e}F#{e}",
+          component => "#{e}S#{e}",
+          subcomponent => "#{e}T#{e}",
+          repeat => "#{e}R#{e}",
+          escape => "#{e}E#{e}"
+        }.compact
       )
     end
   end

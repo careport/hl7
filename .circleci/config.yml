@@ -9,5 +9,6 @@ jobs:
     working_directory: ~/hl7
     steps:
       - checkout
+      - run: gem install bundler
       - run: bundle install --jobs=4 --retry=3 --path vendor/bundle
       - run: bundle exec rspec

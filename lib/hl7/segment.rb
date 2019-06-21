@@ -15,7 +15,7 @@ module HL7
     end
 
     def fields
-      @fields ||= text.split(delimiters.field).map do |field_text|
+      @_fields ||= text.split(delimiters.field).map do |field_text|
         Field.new(field_text.freeze, delimiters)
       end
     end

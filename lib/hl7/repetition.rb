@@ -12,7 +12,7 @@ module HL7
     end
 
     def components
-      @components ||= text.split(delimiters.component).map do |comp_text|
+      @_components ||= text.split(delimiters.component).map do |comp_text|
         Component.new(comp_text.freeze, delimiters)
       end
     end

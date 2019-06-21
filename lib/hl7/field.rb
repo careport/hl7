@@ -12,7 +12,7 @@ module HL7
     end
 
     def repetitions
-      @repetitions ||= text.split(delimiters.repeat).map do |rep_text|
+      @_repetitions ||= text.split(delimiters.repeat).map do |rep_text|
         Repetition.new(rep_text.freeze, delimiters)
       end
     end

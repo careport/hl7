@@ -43,7 +43,7 @@ module HL7
     # occurrence. That marks the end of MSH.2. If we don't find one, just
     # use the end of the text.
     def end_of_delimiters
-      @end_of_delimiters ||=
+      @_end_of_delimiters ||=
         @text.index(field_delimiter, FIELD_DELIM_IDX + 1) || @text.length
     end
 

@@ -72,14 +72,14 @@ module HL7
     private
 
     def unescape_regexp
-      @unescape_regexp ||= (
+      @_unescape_regexp ||= (
         e = Regexp.quote(escape)
         /#{e}F#{e}|#{e}S#{e}|#{e}T#{e}|#{e}R#{e}|#{e}E#{e}/
       )
     end
 
     def unescape_replacements
-      @unescape_replacements ||= (
+      @_unescape_replacements ||= (
         e = escape
 
         {
@@ -93,7 +93,7 @@ module HL7
     end
 
     def escape_regexp
-      @escape_regexp ||= [field, component, subcomponent, repeat, escape].
+      @_escape_regexp ||= [field, component, subcomponent, repeat, escape].
         compact.
         map(&Regexp.method(:quote)).
         join("|").
@@ -101,7 +101,7 @@ module HL7
     end
 
     def escape_replacements
-      @escape_replacements ||= (
+      @_escape_replacements ||= (
         e = escape
 
         {

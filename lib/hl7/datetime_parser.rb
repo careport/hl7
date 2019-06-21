@@ -12,7 +12,7 @@ module HL7
     end
 
     def components
-      @components ||= (
+      @_components ||= (
         # year cannot be nil
         year, month, day, hour, minute, second, fraction, offset = match
 

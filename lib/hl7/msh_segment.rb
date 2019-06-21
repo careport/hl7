@@ -6,7 +6,7 @@ module HL7
     # The MSH segment counts fields a bit differently, since it contains
     # the delimiters.
     def fields
-      @fields ||= (
+      @_fields ||= (
         later_fields = text[4..-1].split(delimiters.field)
         all_fields = [name, delimiters.field] + later_fields
 

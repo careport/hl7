@@ -1,12 +1,12 @@
 version: 2.1
-
-jobs:
-  build:
-    working_directory: ~/hl7
-
+executors:
+  the-executor:
     docker:
       - image: careport/syndicate-circleci:0.2.0
-
+jobs:
+  build:
+    executor: the-executor
+    working_directory: ~/hl7
     steps:
       - checkout
       - run: bundle install --jobs=4 --retry=3 --path vendor/bundle

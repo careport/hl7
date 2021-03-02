@@ -18,6 +18,12 @@ RSpec.describe HL7::MirthXmlParser do
 
       expect { parser.to_hl7 }.to raise_error(HL7::FormatError)
     end
+
+    it "passes through HL7 escapes" do
+      parser = HL7::MirthXmlParser.new(xml_with_hl7_escapes)
+      hl7 = parser.to_hl7
+      expect(hl7).to eq("MSH|^~\\&|Foo\\F\\Bar\r")
+    end
   end
 
   def pcc_a01_xml
@@ -48,6 +54,20 @@ RSpec.describe HL7::MirthXmlParser do
         <MSH>
           <MSH.1>X</MSH.1>
           <MSH.2>Y</MSH.2>
+        </MSH>
+      </HL7Message>
+    XML
+  end
+
+  def xml_with_hl7_escapes
+    <<~XML
+      <HL7Message>
+        <MSH>
+          <MSH.1>|</MSH.1>
+          <MSH.2>^~\\&amp;</MSH.2>
+          <MSH.3>
+              <MSH.3.1>Foo\\F\\Bar</MSH.3.1>
+          </MSH.3>
         </MSH>
       </HL7Message>
     XML

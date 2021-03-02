@@ -96,7 +96,7 @@ module HL7
       components = field.element_children
 
       if components.empty?
-        delimiters.escape_text(field.content)
+        field.content
       else
         components.
           map { |component| parse_component(component, delimiters) }.
@@ -108,10 +108,10 @@ module HL7
       subcomponents = component.element_children
 
       if subcomponents.empty? || delimiters.subcomponent.nil?
-        delimiters.escape_text(component.content)
+        component.content
       else
         subcomponents.
-          map { |subcomponent| delimiters.escape_text(subcomponent.content) }.
+          map(&:content).
           join(delimiters.subcomponent)
       end
     end

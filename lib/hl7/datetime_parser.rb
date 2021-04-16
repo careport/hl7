@@ -2,6 +2,51 @@ require "hl7/datetime_components"
 require "active_support/core_ext/module/delegation"
 
 module HL7
+  class UtcOffset
+    attr_reader :sign, :hours, :minutes
+
+    def initialize(sign:, hours:, minutes:)
+      @sign = sign
+      @hours = hours
+      @minutes = minutes
+      validate!
+    end
+
+    def to_seconds
+      abs = (hours * 3600) + (minutes * 60)
+
+      if sign == "-"
+        -abs
+      else
+        abs
+      end
+    end
+
+    private
+
+    def validate!
+      validate_sign!
+      validate_component!(:hours, hours, (0..23))
+      validate_component!(:minutes, minutes, (0..59))
+    end
+
+    def validate_sign!
+      unless sign == "-" || sign == "+"
+        raise ArgumentError, "UTC offset must begin with '+' or '-'"
+      end
+    end
+
+    def validate_component!(name, value, range)
+      unless value.integer?
+        raise ArgumentError, "UTC offset #{name} component must be an integer; given #{value.inspect}"
+      end
+
+      unless range.cover?(value)
+        raise ArgumentError, "UTC offset #{name} component must be in range #{range}; given #{value.inspect}"
+      end
+    end
+  end
+
   class DatetimeParser
     # The HL7 datetime format is:
     #    YYYY[MM[DD[HH[MM[SS[.S[S[S[S]]]]]]]]][+/-ZZZZ]
@@ -15,6 +60,7 @@ module HL7
       @_components ||= (
         # year cannot be nil
         year, month, day, hour, minute, second, fraction, offset = match
+        utc_offset = build_utc_offset(offset)
 
         DatetimeComponents.new(
           year.to_i,
@@ -24,7 +70,7 @@ module HL7
           minute&.to_i,
           second&.to_i,
           fraction&.to_f,
-          offset_seconds: offset_seconds(offset)
+          offset_seconds: utc_offset&.to_seconds
         )
       )
     end
@@ -50,21 +96,14 @@ module HL7
 
     # argument is a string that looks like:
     #   -0500
-    def offset_seconds(str)
+    def build_utc_offset(str)
       if str.nil?
         nil
       else
         sign = str[0]
         hours = str[1..2].to_i
         minutes = str[3..4].to_i
-
-        abs = (hours * 3600) + (minutes * 60)
-
-        if sign == "-"
-          -abs
-        else
-          abs
-        end
+        UtcOffset.new(sign: sign, hours: hours, minutes: minutes)
       end
     end
   end

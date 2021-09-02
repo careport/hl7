@@ -2,7 +2,7 @@ require 'active_support/core_ext/time'
 
 module HL7
   class DatetimeComponents
-    attr_reader :year, :month, :day, :hour, :minute, :second, :fraction, :offset_seconds
+    attr_reader :year, :month, :day, :hour, :minute, :second, :fraction, :offset_seconds, :precision
 
     def initialize(year, month = nil, day = nil, hour = nil, minute = nil, second = nil, fraction = nil, offset_seconds: nil)
       @year = year
@@ -13,6 +13,9 @@ module HL7
       @second = second
       @fraction = fraction
       @offset_seconds = offset_seconds
+
+      # precision will be set by #validate!
+      @precision = nil
       validate!
     end
 
@@ -39,6 +42,7 @@ module HL7
     def validate!
       # year is not allowed to be nil
       ComponentSpec.new(:year, -9999..9999).validate_non_nil!(year)
+      @precision = :year
 
       # From month down to fraction-of-second, we validate the fields until we come
       # to a nil value. Once we've found a nil, we ensure that all of the rest of
@@ -52,6 +56,7 @@ module HL7
         ComponentSpec.new(:fraction, 0...1, :real?)
       ].reduce(nil) do |first_nil_component, spec|
         value = public_send(spec.component_name)
+        @precision = spec.component_name unless value.nil?
         spec.validate!(value, first_nil_component)
       end
 

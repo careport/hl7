@@ -130,4 +130,16 @@ RSpec.describe HL7::DatetimeComponents do
       ).to eq(Time.utc(1990, 2, 20))
     end
   end
+
+  describe "#precision" do
+    it "is the name of the least-significant non-nil component (not counting UTC offset)" do
+      expect(HL7::DatetimeComponents.new(1990).precision).to eq(:year)
+      expect(HL7::DatetimeComponents.new(1990, 2).precision).to eq(:month)
+      expect(HL7::DatetimeComponents.new(1990, 2, 20).precision).to eq(:day)
+      expect(HL7::DatetimeComponents.new(1990, 2, 20, 15).precision).to eq(:hour)
+      expect(HL7::DatetimeComponents.new(1990, 2, 20, 15, 20).precision).to eq(:minute)
+      expect(HL7::DatetimeComponents.new(1990, 2, 20, 15, 20, 54).precision).to eq(:second)
+      expect(HL7::DatetimeComponents.new(1990, 2, 20, 15, 20, 54, 0.23).precision).to eq(:fraction)
+    end
+  end
 end

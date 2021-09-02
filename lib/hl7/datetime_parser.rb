@@ -75,7 +75,7 @@ module HL7
       )
     end
 
-    delegate :to_time, to: :components
+    delegate :to_time, :precision, to: :components
 
     private
 

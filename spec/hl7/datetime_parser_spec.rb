@@ -28,4 +28,21 @@ RSpec.describe HL7::DatetimeParser do
         to raise_error(ArgumentError)
     end
   end
+
+  describe "#precision" do
+    it "should be correct, based on the provided fields in the input string" do
+      expect(HL7::DatetimeParser.new("2019").precision).to eq(:year)
+      expect(HL7::DatetimeParser.new("201903").precision).to eq(:month)
+      expect(HL7::DatetimeParser.new("20190326").precision).to eq(:day)
+      expect(HL7::DatetimeParser.new("2019032612").precision).to eq(:hour)
+      expect(HL7::DatetimeParser.new("201903261230").precision).to eq(:minute)
+      expect(HL7::DatetimeParser.new("20190326123022").precision).to eq(:second)
+      expect(HL7::DatetimeParser.new("20190326123022.07").precision).to eq(:fraction)
+    end
+
+    it "should raise ArgumentError when the given text cannot be parsed" do
+      expect { HL7::DatetimeParser.new("hello").precision }.
+        to raise_error(ArgumentError)
+    end
+  end
 end
